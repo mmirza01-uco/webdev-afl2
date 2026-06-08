@@ -7,52 +7,165 @@
 <a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
 </p>
 
-## About Laravel
+# Web Development — AFL2
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+Aplikasi Laravel sederhana untuk pengelolaan artikel dengan sistem kategori dan komentar.
+Project ini dibangun sebagai tugas AFL2 mata kuliah Web Development.
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## Tech Stack
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+- **Laravel** (PHP framework)
+- **SQLite** — database (default Laravel 11+)
+- **Blade** — templating engine
+- **Bootstrap 5.3** — CSS framework (via CDN)
+- **Faker** — untuk generate data dummy
+- **Laravel Herd** — environment lokal
 
-## Learning Laravel
+## Fitur yang Diimplementasikan
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+Lima fitur sesuai kriteria penilaian (total 100 poin):
 
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+1. **Database seeder** dengan Factory dan Faker untuk generate 3 kategori, 30 artikel dengan kategori acak, dan 10-20 komentar pada setiap artikel (20 poin)
+2. **Pencarian artikel** berdasarkan judul atau isi konten via query parameter `search` (20 poin)
+3. **Hapus komentar** dari halaman single article dengan konfirmasi (20 poin)
+4. **Edit komentar** dengan inline form dan tampilan tanggal perubahan otomatis (20 poin)
+5. **Urutkan hasil pencarian** A-Z atau Z-A berdasarkan judul artikel (20 poin)
 
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
+## Struktur Database
 
-## Agentic Development
+Tiga tabel dengan relasi sebagai berikut:
 
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
-
-```bash
-composer require laravel/boost --dev
-
-php artisan boost:install
+```
+categories (1) ──< (banyak) articles (1) ──< (banyak) comments
 ```
 
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
+**categories**
+- `id`, `name`, `timestamps`
 
-## Contributing
+**articles**
+- `id`, `title`, `slug` (unique), `content`, `category_id` (foreign key), `timestamps`
+- Foreign key `category_id` dengan `cascadeOnDelete`
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+**comments**
+- `id`, `article_id` (foreign key), `name`, `content`, `timestamps`
+- Foreign key `article_id` dengan `cascadeOnDelete`
 
-## Code of Conduct
+## Daftar Route
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+| Method | URI                       | Name              | Action                              |
+| ------ | ------------------------- | ----------------- | ----------------------------------- |
+| GET    | `/`                       | —                 | Redirect ke `/articles`             |
+| GET    | `/articles`               | `articles.index`  | `ArticleController@index`           |
+| GET    | `/articles/{slug}`        | `articles.show`   | `ArticleController@show`            |
+| POST   | `/comments/update/{id}`   | `comments.update` | `CommentController@update`          |
+| POST   | `/comments/destroy/{id}`  | `comments.destroy`| `CommentController@destroy`         |
 
-## Security Vulnerabilities
+### Query parameter pada `/articles`
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+- `search` — kata kunci pencarian (mencari di judul dan isi artikel)
+- `sort` — `asc` (default, A-Z) atau `desc` (Z-A)
 
-## License
+Contoh: `/articles?search=lorem&sort=desc`
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+## Struktur Folder Utama
+
+```
+.
+├── app/
+│   ├── Http/Controllers/
+│   │   ├── ArticleController.php
+│   │   └── CommentController.php
+│   └── Models/
+│       ├── Article.php
+│       ├── Category.php
+│       └── Comment.php
+├── database/
+│   ├── factories/
+│   │   ├── ArticleFactory.php
+│   │   ├── CategoryFactory.php
+│   │   └── CommentFactory.php
+│   ├── migrations/
+│   │   ├── ..._create_categories_table.php
+│   │   ├── ..._create_articles_table.php
+│   │   └── ..._create_comments_table.php
+│   └── seeders/
+│       ├── ArticleContentSeeder.php
+│       └── DatabaseSeeder.php
+├── resources/
+│   └── views/
+│       ├── components/
+│       │   └── template.blade.php
+│       └── articles/
+│           ├── list.blade.php
+│           └── show.blade.php
+└── routes/
+    └── web.php
+```
+
+## Cara Menjalankan
+
+### Prasyarat
+- PHP 8.2+ (tersedia otomatis lewat [Laravel Herd](https://herd.laravel.com/))
+- Composer
+- Git
+
+### Langkah-langkah
+
+1. Clone repository:
+   ```bash
+   git clone https://github.com/mmirza01-uco/webdev-afl2.git
+   cd webdev-afl2
+   ```
+
+2. Install dependency:
+   ```bash
+   composer install
+   ```
+
+3. Setup file environment dan generate application key:
+   ```bash
+   cp .env.example .env
+   php artisan key:generate
+   ```
+
+4. Buat file database SQLite:
+   ```bash
+   touch database/database.sqlite
+   ```
+
+5. Jalankan migration dan isi data dummy:
+   ```bash
+   php artisan migrate --seed
+   ```
+
+6. Jalankan project:
+   - **Dengan Herd**: letakkan folder project di direktori yang dikelola Herd (default `~/Herd`), lalu akses `http://webdev-afl2.test/articles` di browser.
+   - **Tanpa Herd**: jalankan `php artisan serve`, lalu buka `http://127.0.0.1:8000/articles`.
+
+## Pengujian Manual
+
+| Halaman / Fitur     | URL atau aksi                                    |
+| ------------------- | ------------------------------------------------ |
+| Daftar artikel      | `/articles`                                      |
+| Single article      | klik salah satu artikel dari daftar              |
+| Pencarian           | `/articles?search=lorem`                         |
+| Sort Z-A            | pilih dropdown "Nama Z-A" → klik Cari            |
+| Search + sort       | `/articles?search=ipsum&sort=desc`               |
+| Hapus komentar      | buka single article → klik **Hapus** → konfirmasi |
+| Edit komentar       | buka single article → klik **Edit** → ubah → **Simpan** |
+
+Untuk memverifikasi seluruh route terdaftar:
+```bash
+php artisan route:list
+```
+
+## Catatan
+
+Data yang ditampilkan adalah data dummy yang di-generate oleh Faker via seeder.
+Setiap kali `php artisan migrate:fresh --seed` dijalankan, data akan ulang dari nol
+dengan jumlah komentar acak per artikel (10-20 komentar).
+
+Aplikasi ini fokus pada implementasi backend (Eloquent, query builder, relasi, factory)
+dan fitur CRUD komentar tanpa autentikasi user. Setiap pengunjung dapat mengedit dan
+menghapus komentar siapa pun — implementasi sistem autentikasi dan otorisasi akan
+dikerjakan pada tugas selanjutnya.
